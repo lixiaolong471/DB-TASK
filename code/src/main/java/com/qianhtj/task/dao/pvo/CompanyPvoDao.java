@@ -13,15 +13,23 @@ public class CompanyPvoDao extends BaseDao {
 	}
 	
 	
-	public List<Object[]> getList(Date startDate){
-		Object[] param = new Object[0];
-		StringBuffer selectSql = new StringBuffer("select company_id,company_name,company_short_name,register_number,registered_capital");
-		selectSql.append(",city,establish_date,company_asset_size,company_profile,philosopy,team_profile,logo ");
-		selectSql.append("from pvo_company_info ");
-		if(startDate != null){
-			selectSql.append("where updatetime >= ? ");
-			param = new Object[]{startDate};
-		}
-		return query(selectSql.toString(),param);
-	}
+	public List<Object[]> getList(Date startDate,Date endDate){
+        Object[] param = new Object[0];
+        StringBuffer selectSql = new StringBuffer("select company_id,company_name,company_short_name,register_number,registered_capital");
+        selectSql.append(",city,establish_date,company_asset_size,company_profile,philosopy,team_profile,logo ");
+        selectSql.append("from pvo_company_info ");
+        if(startDate != null){
+            selectSql.append("where updatetime >= ? ");
+            param = new Object[]{startDate};
+        }
+        if(endDate != null){
+            selectSql.append("where updatetime <= ? ");
+            param = new Object[]{endDate};
+        }
+        return query(selectSql.toString(),param);
+    }
+
+    public List<Object[]> getList(Date startDate){
+        return getList(startDate,null);
+    }
 }

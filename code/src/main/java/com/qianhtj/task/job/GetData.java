@@ -4,8 +4,17 @@ import java.util.Date;
 
 public interface GetData {
 	
-	public void init();
-	
-	public void getData(Date date);
-	
+	void init(Date startDate, Date end);
+
+    boolean isRun();
+
+	void getData();
+
+    void stop();
+
+    void pauseOrRestart();
+
+    int getSumCount();
+
+    int getIndex();
 }

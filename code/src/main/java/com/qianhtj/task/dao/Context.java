@@ -40,14 +40,47 @@ public class Context {
 	public static int getDataSourceMaxSize(String name){
 		return config.getInt(name + JDBC_MAXACTIVE);
 	}
-	
 
-	public static PropertiesConfiguration config = new PropertiesConfiguration();
+    public static String getDriverClassName(String name){
+        return config.getString(name + JDBC_DRIVERCLASS);
+    }
+
+    public static String getUsername(String name){
+        return config.getString(name + JDBC_USER);
+    }
+
+    public static String getPassword(String name){
+        return config.getString(name + JDBC_PASSWORD);
+    }
+
+    public static String getUrl(String name){
+        return config.getString(name + JDBC_URL);
+    }
+
+
+    public static void setDriverClassName(String name,String value){
+        config.setProperty(name + JDBC_DRIVERCLASS,value);
+    }
+
+    public static void setUsername(String name,String value){
+        config.setProperty(name + JDBC_USER,value);
+    }
+
+    public static void setPassword(String name,String value){
+        config.setProperty(name + JDBC_PASSWORD,value);
+    }
+
+    public static void setUrl(String name,String value){
+        config.setProperty(name + JDBC_URL,value);
+    }
+
+
+    public static PropertiesConfiguration config = new PropertiesConfiguration();
 	
 	public static final Map<String,BasicDataSource> DATASOURCE_CACHE = new HashMap<String,BasicDataSource>();
 	
 	
-	static BasicDataSource getDataSourceByName(String name){
+	public static BasicDataSource getDataSourceByName(String name){
 		BasicDataSource datasource = null;
 		if((datasource = DATASOURCE_CACHE.get(name)) == null){
 			datasource = createDateSource(name);
@@ -66,7 +99,9 @@ public class Context {
 		
 		BasicDataSource datasource = DATASOURCE_CACHE.get(name);
 		try {
-			datasource.close();
+            if(datasource != null){
+                datasource.close();
+            }
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -91,8 +126,7 @@ public class Context {
 	
 	/**
 	 * 加载配置
-	 * 
-	 * @param name
+	 *
 	 */
 	public static void loadConfig() {
 		try {
@@ -104,15 +138,18 @@ public class Context {
 		}
 
 	}
-	
-	static{
-		try {
-			//test location address
-			loadConfig();
-		} catch (Exception e) {
-			System.out.println("未找到配置文件！！！");
-		}
-	}
+
+    /**
+     * 保存配置
+     */
+	public static void saveConfig(){
+        try {
+            config.save();
+        } catch (ConfigurationException e) {
+            e.printStackTrace();
+        }
+    }
+
 	
 	public static String getImgPath(){
 		return config.getString(IMG_ADDRESS).toString();
@@ -126,4 +163,15 @@ public class Context {
 		return config.getInt(SAVE_POOL_KEY);
 	}
 
+    public static void setSavePool(String value){
+        config.setProperty(SAVE_POOL_KEY,value);
+    }
+
+    public static void setGetPool(String value){
+        config.setProperty(GET_POOL_KEY,value);
+    }
+
+    public static void setImgPath(String value){
+        config.setProperty(IMG_ADDRESS,value);
+    }
 }

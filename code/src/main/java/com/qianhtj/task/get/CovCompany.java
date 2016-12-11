@@ -14,11 +14,10 @@ import com.qianhtj.task.get.company.CompanyIncepCountProcess;
 import com.qianhtj.task.get.company.CompanyIncepProcess;
 import com.qianhtj.task.get.company.CompanyKeyPersonProcess;
 import com.qianhtj.task.main.Util;
+import com.qianhtj.task.utils.DateUtils;
 
-public class CovCompany implements GetData {
-	public static int sumcount = 0;
-	public static int index = 0;
-	
+public class CovCompany extends GeneralGetData implements GetData {
+
 	FundSunshineDao fundSunshineDao;
 	CompanyPvoDao companyPvoDao;
 	CompanyDao companyDao;
@@ -27,6 +26,7 @@ public class CovCompany implements GetData {
 	CompanyIncepProcess companyIncepProcess;
 	CompanyIncepCountProcess companyIncepCountProcess;
 	CompanySeoInfoProcess companySeoInfoProcess;
+
 	
 	public CovCompany(){
 		fundSunshineDao = new FundSunshineDao();
@@ -37,40 +37,33 @@ public class CovCompany implements GetData {
 		companySeoInfoProcess = new CompanySeoInfoProcess();
 		companyPvoDao = new CompanyPvoDao();
 		companyDao = new CompanyDao();
-	}	
-			
-	@Override
-	public void init() {
-		getData(null);
 	}
 
-	@Override
-	public void getData(Date date) {
-		List<Object[]> companyList =  companyPvoDao.getList(date);
-		sumcount = companyList.size();
-		if(companyList != null && companyList.size() > 0)  {
-			for(Object[] companyArray: companyList){
-				index ++;
-				FundCompanyInfo info = setBaseInof(companyArray);
-				info = companyKeyPersonProcess.exec(info);
-				info = companyRepProductProcess.exec(info);
-				info = companyIncepProcess.exec(info);
-				info = companyIncepCountProcess.exec(info);
-				info = companySeoInfoProcess.exec(info);
-				info.logo = Util.covImg(info.logo);
-				info.keyPersonLogo = Util.covImg(info.keyPersonLogo);
-				//只存储存在产品的公司
-				if(info.repProduct != null && info.companyId != null && 
-						!info.companyId.toString().trim().equals("")){
-					companyDao.saveOrUpdate(info);
-				}
-			}						
-		}
-		sumcount  = 0;
-		index = 0;
-	}
-	
-	private FundCompanyInfo setBaseInof(Object[] companyArray){
+    @Override
+    public List<Object[]> getList(Date startDate, Date endDate) {
+        return companyPvoDao.getList(startDate,endDate);
+    }
+
+    @Override
+    public void process(Object[] data){
+        Object[] companyArray = dataList.get(index.get());
+
+        FundCompanyInfo info = setBaseInof(companyArray);
+        info = companyKeyPersonProcess.exec(info);
+        info = companyRepProductProcess.exec(info);
+        info = companyIncepProcess.exec(info);
+        info = companyIncepCountProcess.exec(info);
+        info = companySeoInfoProcess.exec(info);
+        info.logo = Util.covImg(info.logo);
+        info.keyPersonLogo = Util.covImg(info.keyPersonLogo);
+        //只存储存在产品的公司
+        if(info.repProduct != null && info.companyId != null &&
+                !info.companyId.toString().trim().equals("")){
+            companyDao.saveOrUpdate(info);
+        }
+    }
+
+    private FundCompanyInfo setBaseInof(Object[] companyArray){
 		FundCompanyInfo info = new FundCompanyInfo();
 		info.companyId = companyArray[0];
 		info.companyName = companyArray[1];

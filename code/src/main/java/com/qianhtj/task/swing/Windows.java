@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
+import com.qianhtj.task.dao.Context;
 import org.jb2011.lnf.beautyeye.BeautyEyeLNFHelper;
 import org.jdesktop.application.SingleFrameApplication;
 import org.jdesktop.application.View;
@@ -35,8 +36,7 @@ public class Windows extends SingleFrameApplication {
 	
 	public static final int MAIN_FRAME_WIDTH = 880;
     public static final int MAIN_FRAME_HEIGHT = 640;
-    
-        
+
     // GUI components
     private JPanel mainPanel;
     
@@ -51,6 +51,7 @@ public class Windows extends SingleFrameApplication {
 			getMainFrame().setIconImage(icon);
 			getMainFrame().setTitle("数据采集系统");
 			getMainFrame().setResizable(false);
+            Context.loadConfig();
         } catch (Exception ex) {
         	ex.printStackTrace();
         }
@@ -88,19 +89,23 @@ public class Windows extends SingleFrameApplication {
     	JMenu taskMenu = new JMenu("任务管理");
     	JMenuItem initMenu = new JMenuItem("初始化");
     	initMenu.addActionListener(new ActionListener() {
-			
+            JDialog initDialog;
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JDialog initDialog = new InitTaskDialog(getMainFrame());
+                if(initDialog == null){
+                    initDialog = new InitTaskDialog(getMainFrame());
+                }
 				initDialog.setVisible(true);
 			}
 		});
     	JMenuItem dayMenu = new JMenuItem("定时任务");
     	dayMenu.addActionListener(new ActionListener() {
-			
+            JDialog dayDialog;
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JDialog dayDialog = new DayTaskDialog(getMainFrame());
+                if(dayDialog == null){
+                    dayDialog = new DayTaskDialog(getMainFrame());
+                }
 				dayDialog.setVisible(true);
 			}
 		});
@@ -122,10 +127,14 @@ public class Windows extends SingleFrameApplication {
     	JMenu threadMenu = new JMenu("线程池");
     	JMenuItem configItem = new JMenuItem("线程池配置");
     	configItem.addActionListener(new ActionListener() {
-			
+
+            JDialog t;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JDialog t = new ThreadDialog(getMainFrame());
+				if(t == null){
+                    t = new ThreadDialog(getMainFrame());
+                }
 				t.setVisible(true);
 			}
 		});
@@ -140,11 +149,13 @@ public class Windows extends SingleFrameApplication {
          JMenuItem paipaiConnItem = new JMenuItem("私募排排");
          
          paipaiConnItem.addActionListener(new ActionListener() {
- 			
+             JDialog addConn;
+
  			@Override
  			public void actionPerformed(ActionEvent e) {
- 				
- 				JDialog addConn = new ConnectonDialog(getMainFrame());
+ 				if(addConn == null){
+                    addConn = new ConnectonDialog("私募拍拍网","location",getMainFrame());
+                }
  				addConn.setVisible(true);
  			}
  		});
@@ -152,11 +163,13 @@ public class Windows extends SingleFrameApplication {
          JMenuItem location = new JMenuItem("应用系统");
          
          location.addActionListener(new ActionListener() {
- 			
+            JDialog addConn;
+
  			@Override
  			public void actionPerformed(ActionEvent e) {
- 				
- 				JDialog addConn = new ConnectonDialog(getMainFrame());
+ 				if(addConn == null){
+                    addConn = new ConnectonDialog("网站数据","data",getMainFrame());
+                }
  				addConn.setVisible(true);
  			}
  		});
@@ -173,11 +186,5 @@ public class Windows extends SingleFrameApplication {
     public static void main(String[] args){
         launch(Windows.class,args);
     }
-    
-    
-
-	
-    
-
 
 }

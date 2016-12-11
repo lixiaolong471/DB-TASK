@@ -6,16 +6,13 @@ import java.util.List;
 import com.qianhtj.task.dao.fund.MarketIndexesDao;
 import com.qianhtj.task.dao.pvo.MarketPvoIndexesDao;
 import com.qianhtj.task.job.GetData;
+import com.qianhtj.task.utils.DateUtils;
 import org.apache.log4j.Logger;
 
 import com.qianhtj.task.bean.HisMarket;
 
-public class CovMarketIndex implements GetData {
-	private static Logger logger = Logger.getLogger(CovMarketIndex.class);
-	public static int sumcount = 0;
-	
-	public static int index = 0;
-	
+public class CovMarketIndex extends GeneralGetData implements GetData {
+
 	MarketIndexesDao marketIndexesDao;
 	MarketPvoIndexesDao marketPvoIndexesDao;
 	
@@ -23,27 +20,16 @@ public class CovMarketIndex implements GetData {
 		marketIndexesDao = new MarketIndexesDao();
 		marketPvoIndexesDao = new MarketPvoIndexesDao();
 	}
-	
-	@Override
-	public void init() {
-		getData(null);
-	}
 
-	@Override
-	public void getData(Date date) {
-		
-		List<Object[]> marketArray =  marketPvoIndexesDao.findByStartDate(date);
-		sumcount = marketArray.size();
-		logger.info("沪深300数据总数="+sumcount);
-		if(marketArray != null && marketArray.size() > 0)  {
-			for(Object[] market: marketArray){
-				HisMarket obj = new HisMarket(market[0],market[1],market[2],market[3]);
-				marketIndexesDao.saveOrUpdate(obj);
-				index ++;
-			}
-		}
-		sumcount  = 0;
-		index = 0;
-	}
+    @Override
+    public List<Object[]> getList(Date startDate, Date endDate) {
+        return marketPvoIndexesDao.findByStartDate(startDate,endDate);
+    }
+
+    @Override
+    public void process(Object[] data) {
+        HisMarket obj = new HisMarket(data[0],data[1],data[2],data[3]);
+        marketIndexesDao.saveOrUpdate(obj);
+    }
 
 }

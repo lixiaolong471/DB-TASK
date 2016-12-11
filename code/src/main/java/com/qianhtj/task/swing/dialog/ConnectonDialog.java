@@ -4,17 +4,12 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
+import javax.swing.*;
 
+import com.qianhtj.task.dao.Context;
 import com.qianhtj.task.utils.SysFont;
 
-public class ConnectonDialog extends JDialog {
+public class ConnectonDialog extends JDialog implements ActionListener {
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -23,8 +18,20 @@ public class ConnectonDialog extends JDialog {
 	
 	JButton okBtn = new JButton("确定");
     JButton cancelBtn = new JButton("关闭");
+
+    private String sourceType;
     
     private JDialog dialog;
+
+    private JTextField urlText;
+
+    private JTextField userText;
+
+    private JTextField pwdText;
+
+
+
+
     
     private static final int LABLE_WIDTH = 110;
     private static final int LABLE_HEIGHT = 30;
@@ -54,10 +61,14 @@ public class ConnectonDialog extends JDialog {
     private static final int WIDTH = 320;
     
     private static final int HEIGHT = 400;
+
+
+
     
     
-    public ConnectonDialog(JFrame parent){
+    public ConnectonDialog(String name,String sourceType,JFrame parent){
     	dialog = this;
+        this.sourceType = sourceType;
     	Point location = new Point();
     	location.setLocation((parent.getLocation().getX()+(parent.getWidth()-WIDTH)/2),
     			(parent.getLocationOnScreen().getY()+(parent.getHeight()-HEIGHT)/2));
@@ -74,6 +85,8 @@ public class ConnectonDialog extends JDialog {
     	JTextField connText = new JTextField();
     	connText.setFont(SysFont.Infolab);
     	connText.setBounds(SECOND_X, LABLE_1_Y, TEXT_WIDTH, TEXT_HEIGHT);
+        connText.setText(name);
+        connText.setEditable(false);
     	
       	JLabel driverLable = new JLabel("链接名称:");
       	driverLable.setFont(SysFont.Infolab);
@@ -84,39 +97,33 @@ public class ConnectonDialog extends JDialog {
     	driverBox.setBounds(SECOND_X, LABLE_2_Y, TEXT_WIDTH, TEXT_HEIGHT);
     	driverBox.setModel(new DefaultComboBoxModel<>(dbListLabel));
     	
+    	JLabel urlLable = new JLabel("URL地址:");
+    	urlLable.setFont(SysFont.Infolab);
+    	urlLable.setBounds(FIRST_X, LABLE_3_Y, LABLE_WIDTH, LABLE_HEIGHT);
     	
-    	JLabel nameLable = new JLabel("URL地址:");
-    	nameLable.setFont(SysFont.Infolab);
-    	nameLable.setBounds(FIRST_X, LABLE_3_Y, LABLE_WIDTH, LABLE_HEIGHT);
-    	
-    	JTextField nameText = new JTextField();
-    	nameText.setFont(SysFont.Infolab);
-    	nameText.setBounds(SECOND_X, LABLE_3_Y, TEXT_WIDTH, TEXT_HEIGHT);
-    	
-      	JLabel portLable = new JLabel("端口:");
-      	portLable.setFont(SysFont.Infolab);
-      	portLable.setBounds(FIRST_X, LABLE_4_Y, LABLE_WIDTH, LABLE_HEIGHT);
-    	
-    	JTextField portText = new JTextField();
-    	portText.setFont(SysFont.Infolab);
-    	portText.setBounds(SECOND_X, LABLE_4_Y, TEXT_WIDTH, TEXT_HEIGHT);
+    	urlText = new JTextField();
+    	urlText.setFont(SysFont.Infolab);
+    	urlText.setBounds(SECOND_X, LABLE_3_Y, TEXT_WIDTH, TEXT_HEIGHT);
+        urlText.setText(Context.getUrl(sourceType));
     	
     	JLabel userLable = new JLabel("用户名:");
     	userLable.setFont(SysFont.Infolab);
-    	userLable.setBounds(FIRST_X, LABLE_5_Y, LABLE_WIDTH, LABLE_HEIGHT);
+    	userLable.setBounds(FIRST_X, LABLE_4_Y, LABLE_WIDTH, LABLE_HEIGHT);
     	
-    	JTextField userText = new JTextField();
+    	userText = new JTextField();
     	userText.setFont(SysFont.Infolab);
-    	userText.setBounds(SECOND_X, LABLE_5_Y, TEXT_WIDTH, TEXT_HEIGHT);
+    	userText.setBounds(SECOND_X, LABLE_4_Y, TEXT_WIDTH, TEXT_HEIGHT);
+        userText.setText(Context.getUsername(sourceType));
     	
     	JLabel pwdLable = new JLabel("密码:");
     	pwdLable.setFont(SysFont.Infolab);
-    	pwdLable.setBounds(FIRST_X, LABLE_6_Y, LABLE_WIDTH, LABLE_HEIGHT);
+    	pwdLable.setBounds(FIRST_X, LABLE_5_Y, LABLE_WIDTH, LABLE_HEIGHT);
     	
-    	JTextField pwdText = new JTextField();
+    	pwdText = new JTextField();
     	pwdText.setFont(SysFont.Infolab);
-    	pwdText.setBounds(SECOND_X, LABLE_6_Y, TEXT_WIDTH, TEXT_HEIGHT);
-    	
+    	pwdText.setBounds(SECOND_X, LABLE_5_Y, TEXT_WIDTH, TEXT_HEIGHT);
+        pwdText.setText(Context.getPassword(sourceType));
+
     	JButton cancelBtn = new JButton("取消");
     	cancelBtn.setFont(SysFont.Infolab);
     	cancelBtn.setBounds(BUTTON_1_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
@@ -132,8 +139,9 @@ public class ConnectonDialog extends JDialog {
     	JButton okBtn = new JButton("确定");
     	okBtn.setFont(SysFont.Infolab);
     	okBtn.setBounds(BUTTON_2_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
-    	
-    	
+
+
+
     	this.setResizable(false);
     	this.add(connLable);
     	this.add(connText);
@@ -141,11 +149,8 @@ public class ConnectonDialog extends JDialog {
     	this.add(driverLable);
     	this.add(driverBox);
     	
-    	this.add(nameLable);
-    	this.add(nameText);
-    	
-    	this.add(portLable);
-    	this.add(portText);
+    	this.add(urlLable);
+    	this.add(urlText);
     	
     	this.add(userLable);
     	this.add(userText);
@@ -157,11 +162,20 @@ public class ConnectonDialog extends JDialog {
     	this.add(okBtn);
     	
     	this.setModal(true);
-    	
-    	
+
+        okBtn.addActionListener(this);
     }
-    
-    
-    
-	
+
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Context.setUrl(sourceType,urlText.getText());
+        Context.setUsername(sourceType,userText.getText());
+        Context.setPassword(sourceType,pwdText.getText());
+        Context.setUrl(sourceType,urlText.getText());
+        Context.saveConfig();
+        Context.reSetDataSourceByName(sourceType);
+        JOptionPane.showMessageDialog(this,"保存成功");
+        this.setVisible(false);
+    }
 }

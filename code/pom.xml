@@ -33,7 +33,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>com.qianhtj.task.main.DayTaskMain</mainClass>
+							<mainClass>com.qianhtj.task.main.Bootstrap</mainClass>
 							<classpathPrefix>
 								dependency/
 							</classpathPrefix>

@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.qianhtj.task.job.Task;
+import com.qianhtj.task.utils.DateUtils;
 import org.apache.log4j.Logger;
 
 import com.qianhtj.task.bean.SunshinepublicFund;
@@ -26,27 +27,22 @@ import com.qianhtj.task.get.fund.TakeSunshineProcess;
 import com.qianhtj.task.job.GetData;
 import com.qianhtj.task.main.Util;
 
-public class FastCovSunshine implements GetData {
+public class FastCovSunshine extends GeneralGetData implements GetData {
 	
 	ExecutorService threadPool = QueryThreadPoolExecutor.newFixedThreadPoolExecutor();
-	
+    BlockingQueue<SunshinepublicFund> baseDatas = new ArrayBlockingQueue<SunshinepublicFund>(50);
 	static Logger log = Logger.getLogger(Task.class);
-	
-	public volatile static AtomicLong sumcount = new AtomicLong(0);
-	public volatile static AtomicLong index = new AtomicLong(0);
-	public volatile static  AtomicBoolean isRun = new AtomicBoolean(false);
-	
+
 	FundPvoSunshineDao covSunshineDao;
 	MarketPvoDao marketDao;
-	
 	FundNavDao fundNavDao;
 	FundPerformanceDao fundPerformanceDao;
 	FundRiskadjretStatsDao fundRiskadjretStatsDao;
 	FundSunshineDao fundSunshineDao;
 	
 	String shCode;
-	
-	BlockingQueue<SunshinepublicFund> baseDatas = new ArrayBlockingQueue<SunshinepublicFund>(50);
+
+	private Object close;
 	
 	
 	public FastCovSunshine(String shCode){
@@ -59,68 +55,30 @@ public class FastCovSunshine implements GetData {
 		fundSunshineDao = new FundSunshineDao();
 	}
 		
-	private Object close;
-	
-	
-	@Override
-	public void init() {
-		Date endDate = covSunshineDao.getMaxDate();
-		Date startDate = Util.addDay(endDate, -40);
-		loadData(startDate,endDate);
-	}
-	
 
 
-	@Override
-	public void getData(Date date) {
-		loadData(date,null);
-	}
-	
-	
-	private void loadData(Date startDate,Date endDate){
-		try{
-			//查询基金详情
-			close = marketDao.getLastMarketClose(shCode);
-			List<Object[]> list = covSunshineDao.getListByStatus(startDate,endDate);
-			sumcount = new AtomicLong(list.size());
-			log.info("采集总数："+sumcount);
-			if(null != list && list.size() > 0){
-				isRun.set(true);
-				long startTimeMillis = System.currentTimeMillis();
-				startSave();
-				for(Object[] data:list){
-					SunshinepublicFund fund = new SunshinepublicFund();
-					if(close!=null){
-						fund.close = close;
-					}
-					fund.setBaseFundInfo(data);
-					get(fund);
-				}//end for 循环
-				threadPool.shutdown();
-				log.info("====阳光私募数据存储完成【ALL】耗时："+(System.currentTimeMillis() - startTimeMillis) + "ms");
-				index.set(0);
-				sumcount.set(0);
-			}
-		}catch(Exception e){
-			System.err.println("==== pvo_company_info数据表更新异常 ====");
-			e.printStackTrace();
-		}
-	}
-	
+
 	private void startSave(){
 		for(int i=0;i<Context.getSavePool();i++){
 			threadPool.execute(new Thread(){
 				@Override
 				public void run() {
 					super.run();
-					while(isRun.get()){
+					while(getSumCount() > 0){
 						SunshinepublicFund fund = baseDatas.poll();
+						System.out.println("process over!!"+baseDatas.size());
 						if(fund != null){
 							long startTimeMillis = System.currentTimeMillis();
 							new StorageSunshineProcess().exec(fund);
 							new StorageHisNavProcess().exec(fund);
-							FastCovSunshine.index.incrementAndGet();
-							log.info("====阳光私募数据存储完成【saveOrUpdate】耗时："+(System.currentTimeMillis() - startTimeMillis) + "ms");
+							index.incrementAndGet();
+                            log("====阳光私募数据存储完成【saveOrUpdate】耗时："+(System.currentTimeMillis() - startTimeMillis) + "ms");
+						}else {
+							try {
+								Thread.sleep(1000L);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
 						}
 					}
 				}
@@ -134,15 +92,38 @@ public class FastCovSunshine implements GetData {
 			public void run() {
 				super.run();
 				try {
-//					long startTimeMillis = System.currentTimeMillis();
-//					log.info("====阳光私募数据存储完成【start】耗时：");
+					long startTimeMillis = System.currentTimeMillis();
 					baseDatas.put(new TakeSunshineProcess().exec(fund));
-//					log.info("====阳光私募数据存储完成【GET】耗时："+(System.currentTimeMillis() - startTimeMillis) + "ms");
+					System.out.println("====阳光私募数据存储完成【GET】耗时："+(System.currentTimeMillis() - startTimeMillis) + "ms");
+					log("====阳光私募数据存储完成【GET】耗时："+(System.currentTimeMillis() - startTimeMillis) + "ms");
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
 		});
 	}
-	
+
+    @Override
+    public List<Object[]> getList(Date startDate, Date endDate) {
+        return covSunshineDao.getListByStatus(startDate,endDate);
+    }
+
+    @Override
+    public void processList() {
+        close = marketDao.getLastMarketClose(shCode);
+        startSave();
+        super.processList();
+        threadPool.shutdown();
+    }
+
+    @Override
+    public void process(Object[] data) {
+        SunshinepublicFund fund = new SunshinepublicFund();
+        if(close!=null){
+            fund.close = close;
+        }
+        fund.setBaseFundInfo(data);
+        get(fund);
+		System.out.println("process over!!"+baseDatas.size());
+    }
 }

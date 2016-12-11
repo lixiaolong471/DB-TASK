@@ -4,19 +4,20 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
+import javax.swing.*;
 
+import com.qianhtj.task.dao.Context;
 import com.qianhtj.task.utils.SysFont;
 
-public class ThreadDialog extends JDialog {
+public class ThreadDialog extends JDialog implements ActionListener {
 
 	private static final long serialVersionUID = -1415308105803738619L;
 	private static final int WINDOW_WIDTH = 300;
 	private static final int WINDOW_HEIGHT = 200;
+
+    private JTextField getText;
+
+    private JTextField saveText;
 	
 	private static final int X_1 = 30;
 	private static final int X_2 = 150;
@@ -52,17 +53,19 @@ public class ThreadDialog extends JDialog {
 		getLable.setFont(SysFont.Infolab);
 		getLable.setBounds(X_1, Y_1, LABLE_WIDTH, LABLE_HEIGHT);
 		
-		JTextField getText = new JTextField();
+		getText = new JTextField();
 		getText.setFont(SysFont.Infolab);
 		getText.setBounds(X_2, Y_1, LABLE_WIDTH, LABLE_HEIGHT);
-		
+        getText.setText(Context.getGetPool()+"");
+
 		JLabel saveLable = new JLabel("存储数据线程数：");
 		saveLable.setFont(SysFont.Infolab);
 		saveLable.setBounds(X_1, Y_2, LABLE_WIDTH, LABLE_HEIGHT);
 		
-		JTextField saveText = new JTextField();
+		saveText = new JTextField();
 		saveText.setFont(SysFont.Infolab);
 		saveText.setBounds(X_2, Y_2, LABLE_WIDTH, LABLE_HEIGHT);
+        saveText.setText(Context.getSavePool()+"");
 		
 		JButton claoseBt = new JButton("保存");
 		claoseBt.setFont(SysFont.Infolab);
@@ -92,6 +95,16 @@ public class ThreadDialog extends JDialog {
 		this.add(saveBt);
 
 		this.setModal(true);
+        saveBt.addActionListener(this);
 	}
 
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Context.setSavePool(saveText.getText());
+        Context.setGetPool(getText.getText());
+        Context.saveConfig();
+        Context.loadConfig();
+        JOptionPane.showMessageDialog(this,"保存成功");
+        this.setVisible(false);
+    }
 }
