@@ -1,15 +1,14 @@
 package com.qianhtj.task.get;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.qianhtj.task.job.Task;
-import com.qianhtj.task.utils.DateUtils;
 import org.apache.log4j.Logger;
 
 import com.qianhtj.task.bean.SunshinepublicFund;
@@ -25,7 +24,6 @@ import com.qianhtj.task.get.fund.StorageHisNavProcess;
 import com.qianhtj.task.get.fund.StorageSunshineProcess;
 import com.qianhtj.task.get.fund.TakeSunshineProcess;
 import com.qianhtj.task.job.GetData;
-import com.qianhtj.task.main.Util;
 
 public class FastCovSunshine extends GeneralGetData implements GetData {
 	
@@ -39,7 +37,7 @@ public class FastCovSunshine extends GeneralGetData implements GetData {
 	FundPerformanceDao fundPerformanceDao;
 	FundRiskadjretStatsDao fundRiskadjretStatsDao;
 	FundSunshineDao fundSunshineDao;
-	
+	AtomicInteger saveIndex = new AtomicInteger(0);
 	String shCode;
 
 	private Object close;
@@ -59,14 +57,13 @@ public class FastCovSunshine extends GeneralGetData implements GetData {
 
 
 	private void startSave(){
-		for(int i=0;i<Context.getSavePool();i++){
+		for(;saveIndex.get()<Context.getSavePool();saveIndex.getAndIncrement()){
 			threadPool.execute(new Thread(){
 				@Override
 				public void run() {
 					super.run();
-					while(getSumCount() > 0){
-						SunshinepublicFund fund = baseDatas.poll();
-						System.out.println("process over!!"+baseDatas.size());
+					while(isRun.get()){
+                       	SunshinepublicFund fund = baseDatas.poll();
 						if(fund != null){
 							long startTimeMillis = System.currentTimeMillis();
 							new StorageSunshineProcess().exec(fund);
@@ -81,17 +78,27 @@ public class FastCovSunshine extends GeneralGetData implements GetData {
 							}
 						}
 					}
+					saveIndex.getAndDecrement();
 				}
 			});
 		}
 	}
-	
+
+	@Override
+	public void stop() {
+		dataList = new ArrayList<>();
+		sumcount.set(0);
+		index.set(0);
+		isRun.set(false);
+	}
+
 	private void get(final SunshinepublicFund fund){
 		threadPool.execute(new Thread(){
 			@Override
 			public void run() {
 				super.run();
 				try {
+					System.out.println("get data");
 					long startTimeMillis = System.currentTimeMillis();
 					baseDatas.put(new TakeSunshineProcess().exec(fund));
 					System.out.println("====阳光私募数据存储完成【GET】耗时："+(System.currentTimeMillis() - startTimeMillis) + "ms");
@@ -111,9 +118,11 @@ public class FastCovSunshine extends GeneralGetData implements GetData {
     @Override
     public void processList() {
         close = marketDao.getLastMarketClose(shCode);
-        startSave();
+		if(saveIndex.get() < Context.getSavePool()){
+			System.out.println("start save"+saveIndex.get()+"|"+Context.getSavePool());
+			startSave();
+		}
         super.processList();
-        threadPool.shutdown();
     }
 
     @Override
@@ -124,6 +133,5 @@ public class FastCovSunshine extends GeneralGetData implements GetData {
         }
         fund.setBaseFundInfo(data);
         get(fund);
-		System.out.println("process over!!"+baseDatas.size());
     }
 }

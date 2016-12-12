@@ -40,7 +40,7 @@ public class CompanyDao extends BaseDao{
 			updateSql.append(",city,establish_date,company_asset_size,company_profile,philosopy,team_profile,key_person,key_person_name,rep_product,rep_product_name,");
 			updateSql.append("price_date,nav,inception_date,logo,key_person_logo,key_person_profile,seo_title,seo_keywords,seo_description, ");
 			updateSql.append("ret_incep,ret_ytd,pro_product_count,id,ret_ytd_average,ret_incep_average,up_down,update_time)");
-			updateSql.append(" values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+			updateSql.append(" values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 			return update(updateSql.toString(), new Object[]{info.companyId,info.companyName,info.companyShortName,info.registerNumber,info.registeredCapital,
 					info.city,info.establishDate,info.companyAssetSize,info.companyProfile,info.philosopy,info.teamProfile,info.keyPerson,info.keyPersonName,info.repProduct,info.repProductName,
 					info.priceDate,info.nav,info.inceptionDate,info.logo,info.keyPersonLogo,info.keyPersonProfile,info.seoTitle,info.seoKeywords,info.seoDescription,

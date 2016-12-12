@@ -57,10 +57,9 @@ public abstract class GeneralGetData implements GetData {
     public abstract  List<Object[]> getList(Date startDate,Date endDate);
 
     public void processList(){
-        System.out.println("任务执行："+dataList.size() + "index:"+index.get());
         if(dataList != null && dataList.size() > 0)  {
             for(;index.get() < dataList.size();){
-                Object[] data = dataList.get(index.incrementAndGet());
+                Object[] data = dataList.get(index.getAndIncrement());
                 process(data);
                 if(!isRun.get()){
                     break;
@@ -119,7 +118,6 @@ public abstract class GeneralGetData implements GetData {
     public void log(String message){
         if(logable){
             System.out.println(message);
-            //logger.info(message);
         }
     }
 }

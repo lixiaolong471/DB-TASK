@@ -28,6 +28,7 @@ public class InitTaskDialog extends JDialog {
 	private static final int LABLE_HEIGHT = 30;
 
 	private static final int TEXT_WIDTH = 100;
+	private static final int STATUS_WIDTH = 120;
 	private static final int TEXT_HEIGHT = LABLE_HEIGHT;
 
 	private static final int BUTTON_WIDTH = 50;
@@ -39,9 +40,9 @@ public class InitTaskDialog extends JDialog {
 	private static final int _2_X = 80;
 	private static final int _3_X = 190;
 	private static final int _4_X = 300;
-	private static final int _5_X = 360;
-	private static final int _6_X = 420;
-    private static final int _7_X = 480;
+	private static final int _5_X = 380;
+	private static final int _6_X = 440;
+    private static final int _7_X = 500;
 
 
 	private static final int _1_Y = 20;
@@ -65,6 +66,8 @@ public class InitTaskDialog extends JDialog {
 	private JDialog dialog;
 
 	boolean isCpPause = false;
+	boolean isGsPause = false;
+	boolean isHqPause = false;
 
 	public InitTaskDialog(JFrame parent) {
 		df = new DateFormatter();
@@ -124,7 +127,7 @@ public class InitTaskDialog extends JDialog {
 
         final JLabel statusLabel = new JLabel();
         statusLabel.setFont(SysFont.Infolab);
-        statusLabel.setBounds(_4_X, _1_Y, TEXT_WIDTH, TEXT_HEIGHT);
+        statusLabel.setBounds(_4_X, _1_Y, STATUS_WIDTH, LABLE_HEIGHT);
 
 
 		final JButton startBt = new JButton("启动");
@@ -141,7 +144,8 @@ public class InitTaskDialog extends JDialog {
                 stopBt.setEnabled(true);
 				System.out.println(DateUtils.format(startDateText.getDate())+","+DateUtils.format(endDateText.getDate()));
                 fastCovSunshine.init(startDateText.getDate(),endDateText.getDate());
-				printCpView(statusLabel);
+				printView(statusLabel,fastCovSunshine);
+				statusLabel.setText("启动中...");
             }
         });
 
@@ -170,9 +174,13 @@ public class InitTaskDialog extends JDialog {
                 startBt.setEnabled(false);
                 stopBt.setEnabled(false);
 				isCpPause = !isCpPause;
-				pauseBt.setText(isCpPause? "继续":"暂定");
-                fastCovSunshine.pauseOrRestart();
-				printCpView(statusLabel);
+				pauseBt.setText(isCpPause? "继续":"暂停");
+				if(!isCpPause){
+					stopBt.setEnabled(true);
+					printView(statusLabel,fastCovSunshine);
+				}else{
+					stopBt.setEnabled(false);
+				}
             }
 		});
 		
@@ -186,20 +194,25 @@ public class InitTaskDialog extends JDialog {
 		this.add(pauseBt);
 	}
 
-	void printCpView(final JLabel statusLabel){
+	/**
+	 * 显示进度
+	 * @param statusLabel
+	 * @param get
+	 */
+	void printView(final JLabel statusLabel,final GetData get){
 		new Thread(){
 
 			@Override
 			public void run() {
 
 				super.run();
-				System.out.println(fastCovSunshine.isRun() + "|--|" + fastCovSunshine.getIndex() + "|--|" + fastCovSunshine.getSumCount());
-				while(fastCovSunshine.isRun()){
-					if(fastCovSunshine.getIndex() > 0 && fastCovSunshine.getSumCount() > 0){
-						int process = fastCovSunshine.getIndex() * 10000/fastCovSunshine.getSumCount();
+				System.out.println(get.isRun() + "|--|" + get.getIndex() + "|--|" + get.getSumCount());
+				while(get.isRun()){
+					if(get.getIndex() > 0 && get.getSumCount() > 0){
+						int process = get.getIndex() * 10000/get.getSumCount();
 						statusLabel.setText(process/100f+"%");
-						if(fastCovSunshine.getIndex()>=fastCovSunshine.getSumCount()){
-							fastCovSunshine.stop();
+						if(get.getIndex()>=get.getSumCount()){
+							get.stop();
 							statusLabel.setText("执行完成");
 						}
 						try {
@@ -212,42 +225,88 @@ public class InitTaskDialog extends JDialog {
 			}
 		}.start();
 	}
+
+
 	
 	private void adGs(){
 		JLabel label = new JLabel("公司:");
+
+		final JXDatePicker startDateText = new JXDatePicker();
+		final JXDatePicker endDateText = new JXDatePicker();
+		final JLabel statusLabel = new JLabel();
+		final JButton startBt = new JButton("启动");
+		final JButton stopBt = new JButton("停止");
+		final JButton pauseBt = new JButton("暂停");
+
+
 		label.setFont(SysFont.Infolab);
 		label.setBounds(_1_X, _2_Y, LABLE_WIDTH, LABLE_HEIGHT);
 
-		JXDatePicker startDateText = new JXDatePicker();
+
 		startDateText.setFont(SysFont.Infolab);
 		startDateText.setBounds(_2_X, _2_Y, TEXT_WIDTH, TEXT_HEIGHT);
 		startDateText.setFormats("yyyy-MM-dd");
 		startDateText.setDate(DateUtils.addDay(DateUtils.getToday(),-365));
 
-		JXDatePicker endDateText = new JXDatePicker();
 		endDateText.setFont(SysFont.Infolab);
 		endDateText.setBounds(_3_X, _2_Y, TEXT_WIDTH, TEXT_HEIGHT);
 		endDateText.setFormats("yyyy-MM-dd");
 		endDateText.setDate(DateUtils.getToday());
 
+		statusLabel.setFont(SysFont.Infolab);
+		statusLabel.setBounds(_4_X, _2_Y, STATUS_WIDTH, LABLE_HEIGHT);
 
-		JButton startBt = new JButton("启动");
 		startBt.setFont(SysFont.Infolab);
 		startBt.setBounds(_5_X, _2_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+		startBt.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				startBt.setEnabled(false);
+				stopBt.setEnabled(true);
+				pauseBt.setEnabled(true);
+				covCompany.init(startDateText.getDate(),endDateText.getDate());
+				statusLabel.setText("启动中...");
+				printView(statusLabel,covCompany);
+			}
+		});
 
-		JButton stopBt = new JButton("停止");
 		stopBt.setFont(SysFont.Infolab);
 		stopBt.setBounds(_6_X, _2_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
 		stopBt.setEnabled(false);
-		
-		JButton pauseBt = new JButton("暂停");
+		stopBt.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				stopBt.setEnabled(false);
+				startBt.setEnabled(true);
+				pauseBt.setEnabled(false);
+				covCompany.stop();
+			}
+		});
+
 		pauseBt.setFont(SysFont.Infolab);
 		pauseBt.setBounds(_7_X, _2_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
 		pauseBt.setEnabled(false);
-		
+		pauseBt.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				isGsPause = !isGsPause;
+				covCompany.pauseOrRestart();
+				pauseBt.setEnabled(true);
+				startBt.setEnabled(false);
+				pauseBt.setText(isGsPause? "继续":"暂停");
+				if(!isGsPause){
+					stopBt.setEnabled(true);
+					printView(statusLabel,covCompany);
+				}else{
+					stopBt.setEnabled(false);
+				}
+			}
+		});
+
 		this.add(label);
 		this.add(startDateText);
 		this.add(endDateText);
+		this.add(statusLabel);
 		this.add(startBt);
 		this.add(stopBt);
 		this.add(pauseBt);
@@ -255,39 +314,81 @@ public class InitTaskDialog extends JDialog {
 
 	private void adHq(){
 		JLabel label = new JLabel("行情:");
+		final JXDatePicker startDateText = new JXDatePicker();
+		final JXDatePicker endDateText = new JXDatePicker();
+		final JLabel statusLabel = new JLabel();
+		final JButton startBt = new JButton("启动");
+		final JButton stopBt = new JButton("停止");
+		final JButton pauseBt = new JButton("暂停");
+
 		label.setFont(SysFont.Infolab);
 		label.setBounds(_1_X, _3_Y, LABLE_WIDTH, LABLE_HEIGHT);
 
-		JXDatePicker startDateText = new JXDatePicker();
 		startDateText.setFont(SysFont.Infolab);
 		startDateText.setBounds(_2_X, _3_Y, TEXT_WIDTH, TEXT_HEIGHT);
 		startDateText.setFormats("yyyy-MM-dd");
 		startDateText.setDate(DateUtils.addDay(DateUtils.getToday(),-365));
 
-
-		JXDatePicker endDateText = new JXDatePicker();
 		endDateText.setFont(SysFont.Infolab);
 		endDateText.setBounds(_3_X, _3_Y, TEXT_WIDTH, TEXT_HEIGHT);
 		endDateText.setFormats("yyyy-MM-dd");
 		endDateText.setDate(DateUtils.getToday());
 
-		JButton startBt = new JButton("启动");
+		statusLabel.setFont(SysFont.Infolab);
+		statusLabel.setBounds(_4_X, _3_Y, STATUS_WIDTH, LABLE_HEIGHT);
+
 		startBt.setFont(SysFont.Infolab);
 		startBt.setBounds(_5_X, _3_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+		startBt.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				startBt.setEnabled(false);
+				stopBt.setEnabled(true);
+				pauseBt.setEnabled(true);
+				statusLabel.setText("启动中...");
+				printView(statusLabel,covMarketIndex);
+				covMarketIndex.init(startDateText.getDate(),endDateText.getDate());
+			}
+		});
 
-		JButton stopBt = new JButton("停止");
+
 		stopBt.setFont(SysFont.Infolab);
 		stopBt.setBounds(_6_X, _3_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
 		stopBt.setEnabled(false);
-		
-		JButton pauseBt = new JButton("暂停");
+		stopBt.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				covMarketIndex.stop();
+				startBt.setEnabled(true);
+				stopBt.setEnabled(false);
+				pauseBt.setEnabled(false);
+			}
+		});
+
 		pauseBt.setFont(SysFont.Infolab);
 		pauseBt.setBounds(_7_X, _3_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
 		pauseBt.setEnabled(false);
-		
+		pauseBt.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				isHqPause = !isHqPause;
+				pauseBt.setEnabled(true);
+				startBt.setEnabled(false);
+				pauseBt.setText(isHqPause? "继续":"暂停");
+				if(!isHqPause){
+					stopBt.setEnabled(true);
+					printView(statusLabel,covMarketIndex);
+				}else{
+					stopBt.setEnabled(false);
+				}
+				covMarketIndex.pauseOrRestart();
+			}
+		});
+
 		this.add(label);
 		this.add(startDateText);
 		this.add(endDateText);
+		this.add(statusLabel);
 		this.add(startBt);
 		this.add(stopBt);
 		this.add(pauseBt);

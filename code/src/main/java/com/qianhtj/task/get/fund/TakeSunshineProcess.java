@@ -8,7 +8,9 @@ public class TakeSunshineProcess implements FundProcess<SunshinepublicFund> {
 	@Override
 	public SunshinepublicFund exec(SunshinepublicFund fund) {
 		try{
+            System.out.println("--------exec-1----------");
 			if(fund != null){
+                System.out.println("--------exec-2----------");
 				FundProcess<SunshinepublicFund> hisPerformanceProcess = new FundHisPerformanceProcess(); 
 				FundProcess<SunshinepublicFund> riskadjretStatsProcess = new FundRiskadjretStatsProcess();
 				FundProcess<SunshinepublicFund> hisNavProcess = new FundHisNavProcess();
@@ -31,6 +33,7 @@ public class TakeSunshineProcess implements FundProcess<SunshinepublicFund> {
 				fund =	seoPocess.exec(fund);
 				fund.fundManagerLogo = Util.covImg(fund.fundManagerLogo);
 			}
+            System.out.println("--------exec-3----------");
 		}catch(Exception e){
 			e.printStackTrace();
 		}

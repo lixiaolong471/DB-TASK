@@ -1,5 +1,6 @@
 package com.qianhtj.task.dao.pvo;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -14,19 +15,19 @@ public class CompanyPvoDao extends BaseDao {
 	
 	
 	public List<Object[]> getList(Date startDate,Date endDate){
-        Object[] param = new Object[0];
+        List<Object> param = new ArrayList<>();
         StringBuffer selectSql = new StringBuffer("select company_id,company_name,company_short_name,register_number,registered_capital");
         selectSql.append(",city,establish_date,company_asset_size,company_profile,philosopy,team_profile,logo ");
-        selectSql.append("from pvo_company_info ");
+        selectSql.append("from pvo_company_info where 1=1 ");
         if(startDate != null){
-            selectSql.append("where updatetime >= ? ");
-            param = new Object[]{startDate};
+            selectSql.append(" and updatetime >= ? ");
+            param.add(startDate);
         }
         if(endDate != null){
-            selectSql.append("where updatetime <= ? ");
-            param = new Object[]{endDate};
+            selectSql.append(" and updatetime <= ? ");
+            param.add(endDate);
         }
-        return query(selectSql.toString(),param);
+        return query(selectSql.toString(),param.toArray());
     }
 
     public List<Object[]> getList(Date startDate){

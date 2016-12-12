@@ -94,7 +94,9 @@ public class DayTaskDialog extends JDialog {
         stopBt.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                dayTask.shutdown();
+				if(dayTask != null){
+					dayTask.shutdown();
+				}
                 startBt.setEnabled(true);
                 stopBt.setEnabled(false);
                 processText.setText("未开始");
